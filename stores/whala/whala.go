@@ -6,18 +6,18 @@ import (
 	"github.com/leeola/kala"
 	"github.com/leeola/kala/q"
 	"github.com/leeola/kala/util/kalautil"
-	"github.com/leeola/whereis"
+	"github.com/leeola/rubbish"
 )
 
 // Id prefix is used to make the kala id more unique.
-const KalaIdPrefix = "whereis-finder-"
+const KalaIdPrefix = "rubbish-finder-"
 
 type Config struct {
 	// Kala is the Kala interface to use as the data store.
 	Kala kala.Kala
 }
 
-// Whala implements a whereis.Store interface for the Kala datastore.
+// Whala implements a rubbish.Store interface for the Kala datastore.
 //
 // The strange name is a shortened Whereis Kala combination, joined so that
 // annoying import conflicts between kala.Kala and this package are reduced.
@@ -35,7 +35,7 @@ func New(c Config) (*Whala, error) {
 	}, nil
 }
 
-func (k *Whala) Add(i whereis.Item) error {
+func (k *Whala) Add(i rubbish.Item) error {
 	c := kala.Commit{
 		Id: KalaId(i),
 	}
@@ -73,7 +73,7 @@ func (k *Whala) Add(i whereis.Item) error {
 	return nil
 }
 
-func (k *Whala) SearchName(s string) ([]whereis.Item, error) {
+func (k *Whala) SearchName(s string) ([]rubbish.Item, error) {
 	q := q.New().Const(q.Eq("name", s))
 	hashes, err := k.kala.Search(q)
 	if err != nil {
@@ -81,14 +81,14 @@ func (k *Whala) SearchName(s string) ([]whereis.Item, error) {
 	}
 
 	// faking loading here, for testing
-	items := make([]whereis.Item, len(hashes))
+	items := make([]rubbish.Item, len(hashes))
 	for i, h := range hashes {
 		v, err := k.kala.ReadHash(h)
 		if err != nil {
 			return nil, err
 		}
 
-		var item whereis.Item
+		var item rubbish.Item
 		if err := kalautil.UnmarshalJson(v.Json, &item); err != nil {
 			return nil, err
 		}
@@ -100,6 +100,6 @@ func (k *Whala) SearchName(s string) ([]whereis.Item, error) {
 }
 
 // KalaId returns the Kala id for the given item.
-func KalaId(i whereis.Item) string {
+func KalaId(i rubbish.Item) string {
 	return KalaIdPrefix + i.Id
 }

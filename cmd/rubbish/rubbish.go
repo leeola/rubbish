@@ -10,19 +10,19 @@ import (
 	"github.com/leeola/kala/impl/local"
 	"github.com/leeola/kala/indexes/bleve"
 	"github.com/leeola/kala/stores/disk"
-	"github.com/leeola/whereis"
-	"github.com/leeola/whereis/stores/whala"
+	"github.com/leeola/rubbish"
+	"github.com/leeola/rubbish/stores/whala"
 	"github.com/urfave/cli"
 )
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "whereis"
-	app.Usage = "find your stuff"
+	app.Name = "rubbish"
+	app.Usage = "find your rubbish stuff"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "config, f",
-			Value: "~/.config/whereis/whereis.toml",
+			Value: "~/.config/rubbish.toml",
 			Usage: "load config from `PATH`",
 		},
 	}
@@ -99,7 +99,7 @@ func AddCmd(ctx *cli.Context) error {
 		id = name
 	}
 
-	i := whereis.Item{
+	i := rubbish.Item{
 		Id:          id,
 		Name:        name,
 		ContainerId: containerId,
@@ -123,7 +123,7 @@ func SearchCmd(ctx *cli.Context) error {
 		return errors.New("text to search for is required")
 	}
 
-	var items []whereis.Item
+	var items []rubbish.Item
 	switch {
 	// case ctx.Bool("container-id"):
 	// 	items, err = s.SearchId(searchFor)
@@ -149,12 +149,12 @@ func SearchCmd(ctx *cli.Context) error {
 	return w.Flush()
 }
 
-func storeFromCtx(ctx *cli.Context) (whereis.Store, error) {
+func storeFromCtx(ctx *cli.Context) (rubbish.Store, error) {
 	// TODO(leeola): Hardcoding implementation for the moment. Remove this.
 	// iConf :=
 
 	sConf := disk.Config{
-		Path: "_stores/whereis/store",
+		Path: "_stores/rubbish/store",
 	}
 	s, err := disk.New(sConf)
 	if err != nil {
@@ -162,7 +162,7 @@ func storeFromCtx(ctx *cli.Context) (whereis.Store, error) {
 	}
 
 	iConf := bleve.Config{
-		Path: "_stores/whereis/index",
+		Path: "_stores/rubbish/index",
 	}
 	i, err := bleve.New(iConf)
 	if err != nil {

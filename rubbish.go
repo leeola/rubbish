@@ -1,4 +1,4 @@
-package whereis
+package rubbish
 
 import "errors"
 
