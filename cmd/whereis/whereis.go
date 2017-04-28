@@ -2,10 +2,12 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/leeola/kala/impl/local"
-	"github.com/leeola/kala/indexes/storm"
+	"github.com/leeola/kala/indexes/bleve"
 	"github.com/leeola/kala/stores/disk"
 	"github.com/leeola/whereis"
 	"github.com/leeola/whereis/stores/whala"
@@ -48,6 +50,22 @@ func main() {
 				},
 			},
 			Action: AddCmd,
+		},
+		{
+			Name:    "search",
+			Aliases: []string{"s"},
+			Usage:   "search for an item",
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "container-id, c",
+					Usage: "search the constainer id",
+				},
+				cli.BoolFlag{
+					Name:  "description, d",
+					Usage: "search the item description",
+				},
+			},
+			Action: SearchCmd,
 		},
 	}
 
@@ -93,6 +111,37 @@ func AddCmd(ctx *cli.Context) error {
 	return nil
 }
 
+func SearchCmd(ctx *cli.Context) error {
+	s, err := storeFromCtx(ctx)
+	if err != nil {
+		return err
+	}
+
+	searchFor := strings.Join(ctx.Args(), " ")
+	if searchFor == "" {
+		return errors.New("text to search for is required")
+	}
+
+	var items []whereis.Item
+	switch {
+	// case ctx.Bool("container-id"):
+	// 	items, err = s.SearchId(searchFor)
+	// case ctx.Bool("description"):
+	// 	items, err = s.SearchId(searchFor)
+	default:
+		items, err = s.SearchName(searchFor)
+	}
+	if err != nil {
+		return err
+	}
+
+	for _, i := range items {
+		fmt.Printf("matched item: %#v\n", i)
+	}
+
+	return nil
+}
+
 func storeFromCtx(ctx *cli.Context) (whereis.Store, error) {
 	// TODO(leeola): Hardcoding implementation for the moment. Remove this.
 	// iConf :=
@@ -105,10 +154,10 @@ func storeFromCtx(ctx *cli.Context) (whereis.Store, error) {
 		return nil, err
 	}
 
-	iConf := storm.Config{
+	iConf := bleve.Config{
 		Path: "_stores/whereis/index",
 	}
-	i, err := storm.New(iConf)
+	i, err := bleve.New(iConf)
 	if err != nil {
 		return nil, err
 	}

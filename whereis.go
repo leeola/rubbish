@@ -4,22 +4,22 @@ import "errors"
 
 type Item struct {
 	// Id is a unique id for the given item.
-	Id string
+	Id string `json:"id"`
 
 	// Name of the item being stored.
-	Name string
+	Name string `json:"name"`
 
 	// ContainerId is the id of the item this item is within.
-	ContainerId string
+	ContainerId string `json:"containerId"`
 
 	// Description of the item in question.
-	Description string
+	Description string `json:"description"`
 }
 
 // Store implements basic storing and indexing of inventory items.
 type Store interface {
 	Add(Item) error
-	// Search(string) ([]Item, error)
+	SearchName(string) ([]Item, error)
 }
 
 type Config struct {

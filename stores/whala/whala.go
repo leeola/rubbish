@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/leeola/kala"
+	"github.com/leeola/kala/q"
 	"github.com/leeola/kala/util/kalautil"
 	"github.com/leeola/whereis"
 )
@@ -39,9 +40,30 @@ func (k *Whala) Add(i whereis.Item) error {
 		Id: KalaId(i),
 	}
 
-	j, err := kalautil.ToJson(i)
+	j, err := kalautil.MarshalJson(i)
 	if err != nil {
 		return err
+	}
+
+	// we have to specify the indexing value here, as kala doesn't yet support
+	// automatic value assertion.
+	//
+	// Seealso: https://github.com/leeola/kala/blob/master/impl/local/local.go#L98
+	j.Meta.IndexedFields.Append(kala.Field{
+		Field: "name",
+		Value: i.Name,
+	})
+	if i.ContainerId != "" {
+		j.Meta.IndexedFields.Append(kala.Field{
+			Field: "container-id",
+			Value: i.ContainerId,
+		})
+	}
+	if i.Description != "" {
+		j.Meta.IndexedFields.Append(kala.Field{
+			Field: "description",
+			Value: i.Description,
+		})
 	}
 
 	if _, err := k.kala.Write(c, j, nil); err != nil {
@@ -49,6 +71,32 @@ func (k *Whala) Add(i whereis.Item) error {
 	}
 
 	return nil
+}
+
+func (k *Whala) SearchName(s string) ([]whereis.Item, error) {
+	q := q.New().Const(q.Eq("name", s))
+	hashes, err := k.kala.Search(q)
+	if err != nil {
+		return nil, err
+	}
+
+	// faking loading here, for testing
+	items := make([]whereis.Item, len(hashes))
+	for i, h := range hashes {
+		v, err := k.kala.ReadHash(h)
+		if err != nil {
+			return nil, err
+		}
+
+		var item whereis.Item
+		if err := kalautil.UnmarshalJson(v.Json, &item); err != nil {
+			return nil, err
+		}
+
+		items[i] = item
+	}
+
+	return items, nil
 }
 
 // KalaId returns the Kala id for the given item.
