@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/leeola/kala/impl/local"
 	"github.com/leeola/kala/indexes/bleve"
@@ -135,11 +136,17 @@ func SearchCmd(ctx *cli.Context) error {
 		return err
 	}
 
+	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
+	fmt.Fprintln(w, "\t"+strings.Join([]string{
+		"ID", "NAME", "CONTAINERID", "DESCRIPTION",
+	}, "\t"))
 	for _, i := range items {
-		fmt.Printf("matched item: %#v\n", i)
+		fmt.Fprintln(w, "\t"+strings.Join([]string{
+			i.Id, i.Name, i.ContainerId, i.Description,
+		}, "\t"))
 	}
 
-	return nil
+	return w.Flush()
 }
 
 func storeFromCtx(ctx *cli.Context) (whereis.Store, error) {
