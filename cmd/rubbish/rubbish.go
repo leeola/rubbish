@@ -7,11 +7,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/leeola/kala/impl/local"
-	"github.com/leeola/kala/indexes/bleve"
-	"github.com/leeola/kala/stores/disk"
 	"github.com/leeola/rubbish"
-	"github.com/leeola/rubbish/stores/whala"
 	"github.com/urfave/cli"
 )
 
@@ -21,9 +17,10 @@ func main() {
 	app.Usage = "find your rubbish stuff"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:  "config, f",
-			Value: "~/.config/rubbish.toml",
-			Usage: "load config from `PATH`",
+			Name:   "config, f",
+			Value:  "~/.config/rubbish.toml",
+			Usage:  "load config from `PATH`",
+			EnvVar: "RUBBISH_CONFIG",
 		},
 	}
 
@@ -85,6 +82,10 @@ func AddCmd(ctx *cli.Context) error {
 	containerId := ctx.String("container-id")
 	description := ctx.String("description")
 
+	if containerId == "" && !ctx.Bool("allow-no-container") {
+		return errors.New("containerId is required without --allow-no-container flag")
+	}
+
 	if name == "" {
 		return errors.New("name is required")
 	}
@@ -94,20 +95,18 @@ func AddCmd(ctx *cli.Context) error {
 		return errors.New("container must be specified without --allow-no-container")
 	}
 
-	// default the id to the name
-	if id == "" {
-		id = name
-	}
-
 	i := rubbish.Item{
 		Id:          id,
 		Name:        name,
 		ContainerId: containerId,
 		Description: description,
 	}
-	if err := s.Add(i); err != nil {
+	id, err = s.Add(i)
+	if err != nil {
 		return err
 	}
+
+	fmt.Println("added id:", id)
 
 	return nil
 }
@@ -128,7 +127,7 @@ func SearchCmd(ctx *cli.Context) error {
 	// case ctx.Bool("container-id"):
 	// 	items, err = s.SearchId(searchFor)
 	// case ctx.Bool("description"):
-	// 	items, err = s.SearchId(searchFor)
+	// 	items, err = s.SearchDescription(searchFor)
 	default:
 		items, err = s.SearchName(searchFor)
 	}
@@ -147,39 +146,4 @@ func SearchCmd(ctx *cli.Context) error {
 	}
 
 	return w.Flush()
-}
-
-func storeFromCtx(ctx *cli.Context) (rubbish.Store, error) {
-	// TODO(leeola): Hardcoding implementation for the moment. Remove this.
-	// iConf :=
-
-	sConf := disk.Config{
-		Path: "_stores/rubbish/store",
-	}
-	s, err := disk.New(sConf)
-	if err != nil {
-		return nil, err
-	}
-
-	iConf := bleve.Config{
-		Path: "_stores/rubbish/index",
-	}
-	i, err := bleve.New(iConf)
-	if err != nil {
-		return nil, err
-	}
-
-	kConf := local.Config{
-		Store: s,
-		Index: i,
-	}
-	k, err := local.New(kConf)
-	if err != nil {
-		return nil, err
-	}
-
-	wConf := whala.Config{
-		Kala: k,
-	}
-	return whala.New(wConf)
 }

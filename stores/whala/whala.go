@@ -2,6 +2,7 @@ package whala
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/leeola/kala"
 	"github.com/leeola/kala/q"
@@ -35,42 +36,76 @@ func New(c Config) (*Whala, error) {
 	}, nil
 }
 
-func (k *Whala) Add(i rubbish.Item) error {
-	c := kala.Commit{
-		Id: KalaId(i),
+// incrementId iterates over the id to attempt and create a unique item.
+//
+// Note that this just queries over the existing matching IDs, and that
+// this does not ensure a unique id. Currently Kala does not enforce a central
+// method to ensure unique id's, so we have to use an unsafe method like this
+// attempt to create a unique id.
+func (k *Whala) incrementId(name string) (string, error) {
+	var increment int
+
+	pageSize := 10
+	for page := 0; increment < 100; page++ {
+		q := q.New().
+			Limit(pageSize).
+			Skip(page * pageSize).
+			Const(q.Eq("name", name))
+		hashes, err := k.kala.Search(q)
+		if err != nil {
+			return "", err
+		}
+		total := len(hashes)
+		increment = increment + total
+
+		if total < pageSize {
+			break
+		}
+	}
+
+	if increment >= 100 {
+		return "", errors.New("name is too ambiguous")
+	}
+
+	return fmt.Sprintf("%s_%d", name, increment+1), nil
+}
+
+func (k *Whala) Add(i rubbish.Item) (string, error) {
+	var c kala.Commit
+	if i.Id == "" {
+		id, err := k.incrementId(i.Name)
+		if err != nil {
+			return "", err
+		}
+		c.Id = id
+	} else {
+		c.Id = i.Id
 	}
 
 	j, err := kalautil.MarshalJson(i)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	// we have to specify the indexing value here, as kala doesn't yet support
-	// automatic value assertion.
-	//
-	// Seealso: https://github.com/leeola/kala/blob/master/impl/local/local.go#L98
 	j.Meta.IndexedFields.Append(kala.Field{
 		Field: "name",
-		Value: i.Name,
 	})
 	if i.ContainerId != "" {
 		j.Meta.IndexedFields.Append(kala.Field{
 			Field: "container-id",
-			Value: i.ContainerId,
 		})
 	}
 	if i.Description != "" {
 		j.Meta.IndexedFields.Append(kala.Field{
 			Field: "description",
-			Value: i.Description,
 		})
 	}
 
 	if _, err := k.kala.Write(c, j, nil); err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return c.Id, nil
 }
 
 func (k *Whala) SearchName(s string) ([]rubbish.Item, error) {
