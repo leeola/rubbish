@@ -92,7 +92,7 @@ func (k *Whala) Add(i rubbish.Item) (string, error) {
 	})
 	if i.ContainerId != "" {
 		j.Meta.IndexedFields.Append(kala.Field{
-			Field: "container-id",
+			Field: "containerId",
 		})
 	}
 	if i.Description != "" {

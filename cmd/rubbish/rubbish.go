@@ -56,7 +56,7 @@ func main() {
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "container-id, c",
-					Usage: "search the constainer id",
+					Usage: "search the container id",
 				},
 				cli.BoolFlag{
 					Name:  "description, d",
@@ -82,17 +82,13 @@ func AddCmd(ctx *cli.Context) error {
 	containerId := ctx.String("container-id")
 	description := ctx.String("description")
 
-	if containerId == "" && !ctx.Bool("allow-no-container") {
-		return errors.New("containerId is required without --allow-no-container flag")
-	}
-
 	if name == "" {
 		return errors.New("name is required")
 	}
 
-	hasContainer := containerId == ""
+	hasContainer := containerId != ""
 	if !hasContainer && !ctx.Bool("allow-no-container") {
-		return errors.New("container must be specified without --allow-no-container")
+		return errors.New("container-id is required without --allow-no-container flag")
 	}
 
 	i := rubbish.Item{
