@@ -4,16 +4,19 @@ import "errors"
 
 type Item struct {
 	// Id is a unique id for the given item.
-	Id string `json:"id"`
+	//
+	// Note: this is not stored in Kala json, but is instead stored in the normal
+	// kala.Version struct.
+	Id string `json:"id,omitempty"`
 
 	// Name of the item being stored.
 	Name string `json:"name"`
 
 	// ContainerId is the id of the item this item is within.
-	ContainerId string `json:"containerId"`
+	ContainerId string `json:"containerId,omitempty"`
 
 	// Description of the item in question.
-	Description string `json:"description"`
+	Description string `json:"description,omitempty"`
 }
 
 // Store implements basic storing and indexing of inventory items.

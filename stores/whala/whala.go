@@ -82,6 +82,9 @@ func (k *Whala) Add(i rubbish.Item) (string, error) {
 		c.Id = i.Id
 	}
 
+	// Do not store the Id, as Version already stores it.
+	i.Id = ""
+
 	j, err := kalautil.MarshalJson(i)
 	if err != nil {
 		return "", err
@@ -127,6 +130,8 @@ func (k *Whala) SearchName(s string) ([]rubbish.Item, error) {
 		if err := kalautil.UnmarshalJson(v.Json, &item); err != nil {
 			return nil, err
 		}
+
+		item.Id = v.Id
 
 		items[i] = item
 	}
