@@ -90,16 +90,17 @@ func (k *Whala) Add(i rubbish.Item) (string, error) {
 		return "", err
 	}
 
-	j.Meta.IndexedFields.Append(kala.Field{
+	c.JsonMeta = &kala.JsonMeta{}
+	c.JsonMeta.IndexedFields.Append(kala.Field{
 		Field: "name",
 	})
 	if i.ContainerId != "" {
-		j.Meta.IndexedFields.Append(kala.Field{
+		c.JsonMeta.IndexedFields.Append(kala.Field{
 			Field: "containerId",
 		})
 	}
 	if i.Description != "" {
-		j.Meta.IndexedFields.Append(kala.Field{
+		c.JsonMeta.IndexedFields.Append(kala.Field{
 			Field: "description",
 		})
 	}
