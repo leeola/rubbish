@@ -113,7 +113,7 @@ func (k *Whala) Add(i rubbish.Item) (string, error) {
 }
 
 func (k *Whala) SearchName(s string) ([]rubbish.Item, error) {
-	q := q.New().Const(q.Eq("name", s))
+	q := q.New().Const(q.Eq("name", s)).Limit(25)
 	hashes, err := k.kala.Search(q)
 	if err != nil {
 		return nil, err
