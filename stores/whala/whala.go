@@ -92,7 +92,8 @@ func (k *Whala) Add(i rubbish.Item) (string, error) {
 
 	c.JsonMeta = &kala.JsonMeta{}
 	c.JsonMeta.IndexedFields.Append(kala.Field{
-		Field: "name",
+		Field:   "name",
+		Options: (kala.FieldOptions{}).FullTextSearch(),
 	})
 	if i.ContainerId != "" {
 		c.JsonMeta.IndexedFields.Append(kala.Field{
@@ -101,7 +102,8 @@ func (k *Whala) Add(i rubbish.Item) (string, error) {
 	}
 	if i.Description != "" {
 		c.JsonMeta.IndexedFields.Append(kala.Field{
-			Field: "description",
+			Field:   "description",
+			Options: (kala.FieldOptions{}).FullTextSearch(),
 		})
 	}
 
@@ -112,6 +114,33 @@ func (k *Whala) Add(i rubbish.Item) (string, error) {
 	return c.Id, nil
 }
 
+func (k *Whala) SearchDescription(s string) ([]rubbish.Item, error) {
+	q := q.New().Const(q.Fts("description", s)).Limit(25)
+	hashes, err := k.kala.Search(q)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]rubbish.Item, len(hashes))
+	for i, h := range hashes {
+		v, err := k.kala.ReadHash(h)
+		if err != nil {
+			return nil, err
+		}
+
+		var item rubbish.Item
+		if err := kalautil.UnmarshalJson(v.Json, &item); err != nil {
+			return nil, err
+		}
+
+		item.Id = v.Id
+
+		items[i] = item
+	}
+
+	return items, nil
+}
+
 func (k *Whala) SearchName(s string) ([]rubbish.Item, error) {
 	q := q.New().Const(q.Eq("name", s)).Limit(25)
 	hashes, err := k.kala.Search(q)
@@ -119,7 +148,6 @@ func (k *Whala) SearchName(s string) ([]rubbish.Item, error) {
 		return nil, err
 	}
 
-	// faking loading here, for testing
 	items := make([]rubbish.Item, len(hashes))
 	for i, h := range hashes {
 		v, err := k.kala.ReadHash(h)

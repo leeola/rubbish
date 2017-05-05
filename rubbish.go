@@ -23,6 +23,7 @@ type Item struct {
 type Store interface {
 	Add(Item) (string, error)
 	SearchName(string) ([]Item, error)
+	SearchDescription(string) ([]Item, error)
 }
 
 type Config struct {

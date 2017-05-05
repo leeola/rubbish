@@ -124,8 +124,8 @@ func SearchCmd(ctx *cli.Context) error {
 	switch {
 	// case ctx.Bool("container-id"):
 	// 	items, err = s.SearchId(searchFor)
-	// case ctx.Bool("description"):
-	// 	items, err = s.SearchDescription(searchFor)
+	case ctx.Bool("description"):
+		items, err = s.SearchDescription(searchFor)
 	default:
 		items, err = s.SearchName(searchFor)
 	}
