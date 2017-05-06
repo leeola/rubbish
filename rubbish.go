@@ -5,8 +5,8 @@ import "errors"
 type Item struct {
 	// Id is a unique id for the given item.
 	//
-	// Note: this is not stored in Kala json, but is instead stored in the normal
-	// kala.Version struct.
+	// Note: this is not stored in Fixity json, but is instead stored in the normal
+	// fixity.Version struct.
 	Id string `json:"id,omitempty"`
 
 	// Name of the item being stored.

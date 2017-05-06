@@ -6,9 +6,9 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/leeola/errors"
-	"github.com/leeola/kala/impl/local"
-	"github.com/leeola/kala/indexes/bleve"
-	"github.com/leeola/kala/stores/disk"
+	"github.com/leeola/fixity/impl/local"
+	"github.com/leeola/fixity/indexes/bleve"
+	"github.com/leeola/fixity/stores/disk"
 	"github.com/leeola/rubbish"
 	"github.com/leeola/rubbish/stores/whala"
 	homedir "github.com/mitchellh/go-homedir"
@@ -18,11 +18,11 @@ import (
 type Config struct {
 	DontExpandHome bool `toml:"dontExpandHome"`
 
-	// TODO(leeola): Change this to a kala config autoload path / usage
-	KalaStorePath string `toml:"kalaStorePath"`
+	// TODO(leeola): Change this to a fixity config autoload path / usage
+	FixityStorePath string `toml:"fixityStorePath"`
 }
 
-// TODO(leeola): Change this to a kala config autoload path / usage
+// TODO(leeola): Change this to a fixity config autoload path / usage
 func storeFromCtx(ctx *cli.Context) (rubbish.Store, error) {
 	configPath := ctx.GlobalString("config")
 	if configPath == "" {
@@ -45,20 +45,20 @@ func storeFromCtx(ctx *cli.Context) (rubbish.Store, error) {
 		return nil, errors.Wrap(err, "failed to unmarshal config")
 	}
 
-	if conf.KalaStorePath == "" {
-		return nil, errors.New("missing required config value: KalaStorePath")
+	if conf.FixityStorePath == "" {
+		return nil, errors.New("missing required config value: FixityStorePath")
 	}
 
 	if !conf.DontExpandHome {
-		p, err := homedir.Expand(conf.KalaStorePath)
+		p, err := homedir.Expand(conf.FixityStorePath)
 		if err != nil {
 			return nil, err
 		}
-		conf.KalaStorePath = p
+		conf.FixityStorePath = p
 	}
 
 	sConf := disk.Config{
-		Path: filepath.Join(conf.KalaStorePath, "store"),
+		Path: filepath.Join(conf.FixityStorePath, "store"),
 	}
 	s, err := disk.New(sConf)
 	if err != nil {
@@ -66,7 +66,7 @@ func storeFromCtx(ctx *cli.Context) (rubbish.Store, error) {
 	}
 
 	iConf := bleve.Config{
-		Path: filepath.Join(conf.KalaStorePath, "index"),
+		Path: filepath.Join(conf.FixityStorePath, "index"),
 	}
 	i, err := bleve.New(iConf)
 	if err != nil {
@@ -83,7 +83,7 @@ func storeFromCtx(ctx *cli.Context) (rubbish.Store, error) {
 	}
 
 	wConf := whala.Config{
-		Kala: k,
+		Fixity: k,
 	}
 	return whala.New(wConf)
 }
