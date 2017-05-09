@@ -7,7 +7,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/leeola/errors"
 	"github.com/leeola/fixity/impl/local"
-	"github.com/leeola/fixity/indexes/bleve"
+	"github.com/leeola/fixity/indexes/snail"
 	"github.com/leeola/fixity/stores/disk"
 	"github.com/leeola/rubbish"
 	"github.com/leeola/rubbish/stores/whala"
@@ -65,10 +65,10 @@ func storeFromCtx(ctx *cli.Context) (rubbish.Store, error) {
 		return nil, err
 	}
 
-	iConf := bleve.Config{
+	iConf := snail.Config{
 		Path: filepath.Join(conf.FixityStorePath, "index"),
 	}
-	i, err := bleve.New(iConf)
+	i, err := snail.New(iConf)
 	if err != nil {
 		return nil, err
 	}
