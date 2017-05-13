@@ -18,7 +18,7 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:   "config, f",
-			Value:  "~/.config/rubbish.toml",
+			Value:  "~/.config/rubbish/config.toml",
 			Usage:  "load config from `PATH`",
 			EnvVar: "RUBBISH_CONFIG",
 		},
