@@ -25,6 +25,11 @@ func storeFromCtx(ctx *cli.Context) (rubbish.Store, error) {
 		return nil, errors.New("config PATH is required")
 	}
 
+	configPath, err := homedir.Expand(configPath)
+	if err != nil {
+		return nil, err
+	}
+
 	f, err := os.Open(configPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to open config")
