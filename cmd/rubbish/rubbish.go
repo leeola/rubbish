@@ -127,7 +127,7 @@ func SearchCmd(ctx *cli.Context) error {
 	case ctx.Bool("description"):
 		items, err = s.SearchDescription(searchFor)
 	default:
-		items, err = s.SearchName(searchFor)
+		items, err = s.Search(searchFor)
 	}
 	if err != nil {
 		return err

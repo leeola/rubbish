@@ -114,8 +114,8 @@ func (k *Whala) Add(i rubbish.Item) (string, error) {
 	return c.Id, nil
 }
 
-func (k *Whala) SearchDescription(s string) ([]rubbish.Item, error) {
-	q := q.New().Const(q.Fts("description", s)).Limit(25)
+func (k *Whala) Search(s string) ([]rubbish.Item, error) {
+	q := q.New().Const(q.Fts("*", s)).Limit(25)
 	hashes, err := k.fixity.Search(q)
 	if err != nil {
 		return nil, err
@@ -141,8 +141,8 @@ func (k *Whala) SearchDescription(s string) ([]rubbish.Item, error) {
 	return items, nil
 }
 
-func (k *Whala) SearchName(s string) ([]rubbish.Item, error) {
-	q := q.New().Const(q.Eq("name", s)).Limit(25)
+func (k *Whala) SearchDescription(s string) ([]rubbish.Item, error) {
+	q := q.New().Const(q.Fts("description", s)).Limit(25)
 	hashes, err := k.fixity.Search(q)
 	if err != nil {
 		return nil, err

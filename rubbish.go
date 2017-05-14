@@ -22,7 +22,7 @@ type Item struct {
 // Store implements basic storing and indexing of inventory items.
 type Store interface {
 	Add(Item) (string, error)
-	SearchName(string) ([]Item, error)
+	Search(string) ([]Item, error)
 	SearchDescription(string) ([]Item, error)
 }
 
