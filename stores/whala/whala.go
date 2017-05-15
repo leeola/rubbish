@@ -106,6 +106,11 @@ func (k *Whala) Add(i rubbish.Item) (string, error) {
 			Options: (fixity.FieldOptions{}).FullTextSearch(),
 		})
 	}
+	if len(i.Tags) > 0 {
+		c.JsonMeta.IndexedFields.Append(fixity.Field{
+			Field: "tags",
+		})
+	}
 
 	if _, err := k.fixity.Write(c, j, nil); err != nil {
 		return "", err
@@ -114,8 +119,20 @@ func (k *Whala) Add(i rubbish.Item) (string, error) {
 	return c.Id, nil
 }
 
-func (k *Whala) Search(s string) ([]rubbish.Item, error) {
-	q := q.New().Const(q.Fts("*", s)).Limit(25)
+func (k *Whala) Search(s string, ts []string) ([]rubbish.Item, error) {
+	var cs q.Constraints
+	if s != "" {
+		cs.Fts("*", s)
+	}
+	for _, t := range ts {
+		cs.In("tags", t)
+	}
+	q := q.New().And(cs...).Limit(25)
+
+	if len(cs) == 0 {
+		return nil, errors.New("no queries specified")
+	}
+
 	hashes, err := k.fixity.Search(q)
 	if err != nil {
 		return nil, err
@@ -141,8 +158,20 @@ func (k *Whala) Search(s string) ([]rubbish.Item, error) {
 	return items, nil
 }
 
-func (k *Whala) SearchDescription(s string) ([]rubbish.Item, error) {
-	q := q.New().Const(q.Fts("description", s)).Limit(25)
+func (k *Whala) SearchDescription(s string, ts []string) ([]rubbish.Item, error) {
+	var cs q.Constraints
+	if s != "" {
+		cs.Fts("*", s)
+	}
+	for _, t := range ts {
+		cs.In("tags", t)
+	}
+	q := q.New().And(cs...).Limit(25)
+
+	if len(cs) == 0 {
+		return nil, errors.New("no queries specified")
+	}
+
 	hashes, err := k.fixity.Search(q)
 	if err != nil {
 		return nil, err

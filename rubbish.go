@@ -17,13 +17,16 @@ type Item struct {
 
 	// Description of the item in question.
 	Description string `json:"description,omitempty"`
+
+	// Tags for the item being stored.
+	Tags []string `json:"tags,omitempty"`
 }
 
 // Store implements basic storing and indexing of inventory items.
 type Store interface {
 	Add(Item) (string, error)
-	Search(string) ([]Item, error)
-	SearchDescription(string) ([]Item, error)
+	Search(string, []string) ([]Item, error)
+	SearchDescription(string, []string) ([]Item, error)
 }
 
 type Config struct {

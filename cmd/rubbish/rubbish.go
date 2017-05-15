@@ -30,6 +30,10 @@ func main() {
 			Aliases: []string{"a"},
 			Usage:   "add an item to inventory",
 			Flags: []cli.Flag{
+				cli.StringSliceFlag{
+					Name:  "tag, t",
+					Usage: "specify a tag for the given item",
+				},
 				cli.StringFlag{
 					Name:  "id, i",
 					Usage: "the unique id of the item",
@@ -54,6 +58,10 @@ func main() {
 			Aliases: []string{"s"},
 			Usage:   "search for an item",
 			Flags: []cli.Flag{
+				cli.StringSliceFlag{
+					Name:  "tag, t",
+					Usage: "search for a given tag",
+				},
 				cli.BoolFlag{
 					Name:  "container-id, c",
 					Usage: "search the container id",
@@ -98,6 +106,7 @@ func AddCmd(ctx *cli.Context) error {
 		Name:        name,
 		ContainerId: containerId,
 		Description: description,
+		Tags:        ctx.StringSlice("tag"),
 	}
 	id, err = s.Add(i)
 	if err != nil {
@@ -115,19 +124,17 @@ func SearchCmd(ctx *cli.Context) error {
 		return err
 	}
 
+	tags := ctx.StringSlice("tag")
 	searchFor := strings.Join(ctx.Args(), " ")
-	if searchFor == "" {
-		return errors.New("text to search for is required")
-	}
 
 	var items []rubbish.Item
 	switch {
 	// case ctx.Bool("container-id"):
 	// 	items, err = s.SearchId(searchFor)
 	case ctx.Bool("description"):
-		items, err = s.SearchDescription(searchFor)
+		items, err = s.SearchDescription(searchFor, tags)
 	default:
-		items, err = s.Search(searchFor)
+		items, err = s.Search(searchFor, tags)
 	}
 	if err != nil {
 		return err
@@ -135,11 +142,11 @@ func SearchCmd(ctx *cli.Context) error {
 
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "\t"+strings.Join([]string{
-		"ID", "NAME", "CONTAINERID", "DESCRIPTION",
+		"ID", "NAME", "CONTAINERID", "DESCRIPTION", "TAGS",
 	}, "\t"))
 	for _, i := range items {
 		fmt.Fprintln(w, "\t"+strings.Join([]string{
-			i.Id, i.Name, i.ContainerId, i.Description,
+			i.Id, i.Name, i.ContainerId, i.Description, strings.Join(i.Tags, ", "),
 		}, "\t"))
 	}
 
