@@ -5,9 +5,9 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/leeola/errors"
+	"github.com/leeola/fixity-rubbish"
+	"github.com/leeola/fixity-rubbish/stores/whala"
 	"github.com/leeola/fixity/autoload"
-	"github.com/leeola/rubbish"
-	"github.com/leeola/rubbish/stores/whala"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/urfave/cli"
 )

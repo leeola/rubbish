@@ -7,7 +7,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/leeola/rubbish"
+	"github.com/leeola/fixity-rubbish"
 	"github.com/urfave/cli"
 )
 

@@ -5,13 +5,17 @@ import (
 	"fmt"
 
 	"github.com/leeola/fixity"
+	"github.com/leeola/fixity-rubbish"
 	"github.com/leeola/fixity/q"
-	"github.com/leeola/fixity/util/fixityutil"
-	"github.com/leeola/rubbish"
 )
 
-// Id prefix is used to make the fixity id more unique.
-const FixityIdPrefix = "rubbish-finder-"
+const (
+	// IdPrefix is used to make the fixity id more unique.
+	IdPrefix = "rubbish-finder-"
+
+	// MultiJsonKey is used to unmarshal our item document from the MultiJson.
+	MultiJsonKey = "item"
+)
 
 type Config struct {
 	// Fixity is the Fixity interface to use as the data store.
@@ -85,34 +89,34 @@ func (k *Whala) Add(i rubbish.Item) (string, error) {
 	// Do not store the Id, as Version already stores it.
 	i.Id = ""
 
-	j, err := fixityutil.MarshalJson(i)
-	if err != nil {
-		return "", err
-	}
-
-	c.JsonMeta = &fixity.JsonMeta{}
-	c.JsonMeta.IndexedFields.Append(fixity.Field{
+	var fields fixity.Fields
+	fields.Append(fixity.Field{
 		Field:   "name",
 		Options: (fixity.FieldOptions{}).FullTextSearch(),
 	})
 	if i.ContainerId != "" {
-		c.JsonMeta.IndexedFields.Append(fixity.Field{
+		fields.Append(fixity.Field{
 			Field: "containerId",
 		})
 	}
 	if i.Description != "" {
-		c.JsonMeta.IndexedFields.Append(fixity.Field{
+		fields.Append(fixity.Field{
 			Field:   "description",
 			Options: (fixity.FieldOptions{}).FullTextSearch(),
 		})
 	}
 	if len(i.Tags) > 0 {
-		c.JsonMeta.IndexedFields.Append(fixity.Field{
+		fields.Append(fixity.Field{
 			Field: "tags",
 		})
 	}
 
-	if _, err := k.fixity.Write(c, j, nil); err != nil {
+	multiJson := fixity.MultiJson{}
+	if err := multiJson.MarshalWithFields(MultiJsonKey, i, fields); err != nil {
+		return "", err
+	}
+
+	if _, err := k.fixity.Write(c, multiJson, nil); err != nil {
 		return "", err
 	}
 
@@ -146,7 +150,7 @@ func (k *Whala) Search(s string, ts []string) ([]rubbish.Item, error) {
 		}
 
 		var item rubbish.Item
-		if err := fixityutil.UnmarshalJson(v.Json, &item); err != nil {
+		if err := v.MultiJson.Unmarshal(MultiJsonKey, &item); err != nil {
 			return nil, err
 		}
 
@@ -185,7 +189,7 @@ func (k *Whala) SearchDescription(s string, ts []string) ([]rubbish.Item, error)
 		}
 
 		var item rubbish.Item
-		if err := fixityutil.UnmarshalJson(v.Json, &item); err != nil {
+		if err := v.MultiJson.Unmarshal(MultiJsonKey, &item); err != nil {
 			return nil, err
 		}
 
@@ -199,5 +203,5 @@ func (k *Whala) SearchDescription(s string, ts []string) ([]rubbish.Item, error)
 
 // FixityId returns the Fixity id for the given item.
 func FixityId(i rubbish.Item) string {
-	return FixityIdPrefix + i.Id
+	return IdPrefix + i.Id
 }
